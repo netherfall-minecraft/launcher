@@ -1,0 +1,42 @@
+import { Theme } from "../Theme.slint";
+
+export component ProgressBar inherits Rectangle {
+  in-out property <float>  value: 0.0;      // 0..1
+  in property  <duration>  anim_duration: 2500ms;
+  in property  <length>    thickness: 8px;
+  in property  <bool>      show_percent: true;
+  callback finished();
+
+  width: 320px;
+  height: thickness;
+  border-radius: self.height / 2;
+  background: Theme.surfaceAlt;
+
+  // Проценты над полосой
+  Text {
+    x: 0px; y: -18px; width: parent.width; height: 16px;
+    visible: root.show_percent;
+    horizontal-alignment: center;
+    color: Theme.textMuted;
+    text: (round(root.value * 100.0)) + "%";
+
+
+  }
+
+  // Заполнение
+  fill := Rectangle {
+    x: 0px; y: 0px;
+    width: max(parent.height, parent.width * root.value); // без «носика»
+    height: parent.height;
+    border-radius: parent.border-radius;
+    background: Theme.primary;
+    animate width { duration: root.anim_duration; easing: ease-in-out; }
+  }
+
+  // анимка
+  kick := Timer { interval: 1ms; running: false; triggered => { root.value = 1.0; } }
+  done := Timer { interval: root.anim_duration; running: false; triggered => { root.finished(); } }
+
+  callback start();
+  start => { root.value = 0.0; kick.running = true; done.running = true; }
+}

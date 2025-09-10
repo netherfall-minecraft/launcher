@@ -1,0 +1,86 @@
+import { Theme } from "../Theme.slint";
+import { PrimaryButton } from "../components/PrimaryButton.slint";
+import { ProgressBar } from "../components/ProgressBar.slint";
+
+export component HomeScreen inherits Rectangle {
+  callback play_clicked();
+  callback fix_clicked();
+
+  in-out property <bool> loading: false;
+  in-out property <string> status: "Готово";
+
+  private property <length> content_w: max(200px, min(420px, self.width - 64px));
+
+  background: Theme.surface;
+
+  VerticalLayout {
+    padding: 20px; spacing: 16px; alignment: center;
+
+    Text { text: "Netherfall Launcher"; color: Theme.text; font-size: 22px; }
+
+    // Ряд с двумя кнопками
+    HorizontalLayout {
+      spacing: 12px;
+
+      // «Играть» с пульсом
+      Rectangle {
+        width: (root.content_w - 12px) / 2; height: 48px;
+
+        Rectangle {
+          x: 0px; y: 0px; width: parent.width; height: parent.height;
+          border-radius: Theme.radius;
+          background: Theme.primary;
+          opacity: glow_on ? 0.22 : 0.06;
+          animate opacity { duration: 900ms; easing: ease-in-out; }
+        }
+        in-out property <bool> glow_on: false;
+
+        PrimaryButton {
+          width: parent.width;
+          text: root.loading ? "Запуск..." : "Играть";
+          enabled: !root.loading;
+          clicked => {
+            if (!root.loading) {
+              root.loading = true;
+              root.status = "Запуск...";
+              root.play_clicked();
+              glow_on = !glow_on;
+              bar.start();
+            }
+          }
+        }
+      }
+
+      // «Починить игру» (зелёная)
+      PrimaryButton {
+        width: (root.content_w - 12px) / 2;
+        text: root.loading ? "Чиним..." : "Починить игру";
+        enabled: !root.loading;
+        accent: #35B276;
+        accent_hover: #3FC985;
+        clicked => {
+          if (!root.loading) {
+            root.loading = true;
+            root.status = "Исправление...";
+            root.fix_clicked();
+            bar.start();
+          }
+        }
+      }
+    }
+
+    // Прогресс и статус
+      bar := ProgressBar {
+        width: root.content_w;
+        anim_duration: 2500ms;
+        show_percent: true;
+        finished => {
+          root.loading = false;
+          root.status = "Готово";
+        }
+      }
+
+
+    Text { text: root.status; color: Theme.textMuted; }
+  }
+}

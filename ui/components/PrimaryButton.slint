@@ -1,0 +1,39 @@
+import { Theme } from "../Theme.slint";
+
+export component PrimaryButton inherits Rectangle {
+  in property <string> text: "Button";
+  in property <bool>   enabled: true;
+
+  in property <brush>  accent: Theme.primary;
+  in property <brush>  accent_hover: Theme.primaryHover;
+
+  callback clicked();
+
+  width: 220px;
+  height: 48px;
+  border-radius: Theme.radius;
+  background: inner_ta.has-hover ? accent_hover : accent;
+  opacity: enabled ? 1.0 : 0.5;
+
+  inner := Rectangle {
+    x: 0px; y: inner_ta.pressed ? 2px : 0px;
+    width: parent.width; height: parent.height;
+    border-radius: parent.border-radius;
+    background: parent.background;
+
+    animate y { duration: 120ms; easing: ease-out; }
+    animate background { duration: 160ms; easing: ease-in-out; }
+
+    Text {
+      x: 0px; y: 0px; width: parent.width; height: parent.height;
+      horizontal-alignment: center; vertical-alignment: center;
+      color: white; text: root.text;
+    }
+
+    inner_ta := TouchArea {
+      x: 0px; y: 0px; width: parent.width; height: parent.height;
+      enabled: root.enabled;
+      clicked => { root.clicked(); }
+    }
+  }
+}

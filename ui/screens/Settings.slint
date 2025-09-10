@@ -1,0 +1,176 @@
+import { Theme } from "../Theme.slint";
+import { PrimaryButton } from "../components/PrimaryButton.slint";
+
+// Маленькая кнопка
+component SmallButton inherits PrimaryButton {
+  height: 36px;
+}
+
+// Переключатель
+component Toggle inherits Rectangle {
+  in-out property <bool> checked: false;
+  width: 44px; height: 24px; border-radius: self.height / 2;
+  background: checked ? Theme.primary : Theme.surfaceAlt;
+
+  knob := Rectangle {
+    y: 2px; width: 20px; height: 20px; border-radius: 10px; background: white;
+    x: checked ? parent.width - self.width - 2px : 2px;
+    animate x { duration: 160ms; easing: ease-in-out; }
+  }
+
+  TouchArea { x: 0px; y: 0px; width: parent.width; height: parent.height;
+    clicked => { root.checked = !root.checked; }
+  }
+}
+
+// Строка настроек
+component Row inherits Rectangle {
+  in property <string> label: "Label";
+  in property <length> row_height: 40px;
+  in property <length> w: 0px;
+
+  width: w; height: row_height; background: Theme.surface;
+
+  Text {
+    x: 0px; y: 0px; width: 180px; height: parent.height;
+    color: Theme.text; vertical-alignment: center; text: root.label;
+  }
+}
+
+export component SettingsScreen inherits Rectangle {
+  in-out property <int>    ram_mb: 4096;
+  in-out property <bool>   compat_mode: false;
+  in-out property <string> java_path: "/usr/local/bin/java";
+
+  // папка игры
+  in-out property <string> game_dir: "~/.netherfall";
+
+  // Колбэки для кнопок 
+  callback open_game_dir();
+  callback browse_game_dir();
+  callback save_clicked();
+
+  background: Theme.surface;
+
+  VerticalLayout {
+    padding: 16px; spacing: 12px;
+
+    Text { text: "Настройки"; color: Theme.text; font-size: 18px; }
+
+    // ram
+    Row {
+      w: parent.width;
+      label: "Память (MB)";
+
+      Rectangle {
+        x: 190px; y: 0px; width: parent.width - 190px; height: parent.height;
+
+        SmallButton {
+          x: 0px; y: 2px; width: 68px;
+          text: "—";
+          clicked => { root.ram_mb = max(1024, root.ram_mb - 256); }
+        }
+
+        Text {
+          x: 76px; y: 0px; width: 110px; height: parent.height;
+          vertical-alignment: center; horizontal-alignment: center;
+          color: Theme.text;
+          text: (root.ram_mb) + " MB";
+        }
+
+        SmallButton {
+          x: 190px; y: 2px; width: 68px;
+          text: "+";
+          clicked => { root.ram_mb = min(16384, root.ram_mb + 256); }
+        }
+      }
+    }
+
+    // Java path
+    Row {
+      w: parent.width;
+      label: "Путь к Java";
+
+      Rectangle {
+        x: 190px; y: 0px; width: parent.width - 190px; height: parent.height;
+
+        Rectangle {
+          x: 0px; y: 6px; width: parent.width - 120px; height: parent.height - 12px;
+          border-radius: 8px; background: Theme.surfaceAlt;
+
+          Text {
+            x: 10px; y: 0px; width: parent.width - 20px; height: parent.height;
+            vertical-alignment: center; color: Theme.textMuted;
+            text: root.java_path;
+          }
+        }
+
+        SmallButton {
+          x: parent.width - 110px; y: 2px; width: 110px;
+          text: "Обзор…";
+          clicked => { /* диалог выбора Java позже */ }
+        }
+      }
+    }
+
+    // Папка игры
+    Row {
+      w: parent.width;
+      label: "Папка игры";
+
+      Rectangle {
+        x: 190px; y: 0px; width: parent.width - 190px; height: parent.height;
+
+        // Поле с путём
+        Rectangle {
+          x: 0px; y: 6px; width: parent.width - 240px; height: parent.height - 12px;
+          border-radius: 8px; background: Theme.surfaceAlt;
+
+          Text {
+            x: 10px; y: 0px; width: parent.width - 20px; height: parent.height;
+            vertical-alignment: center; color: Theme.textMuted;
+            text: root.game_dir;
+          }
+        }
+
+        // Кнопка Открыть
+        SmallButton {
+          x: parent.width - 230px; y: 2px; width: 110px;
+          text: "Открыть";
+          clicked => { root.open_game_dir(); }
+        }
+
+        // Кнопка Обзор
+        SmallButton {
+          x: parent.width - 110px; y: 2px; width: 110px;
+          text: "Обзор…";
+          clicked => { root.browse_game_dir(); }
+        }
+      }
+    }
+
+    // Режим совместимости
+    Row {
+      w: parent.width;
+      label: "Совместимость";
+
+      Rectangle {
+        x: 190px; y: 0px; width: parent.width - 190px; height: parent.height;
+
+        Toggle { x: 0px; y: 8px; checked: root.compat_mode; }
+
+        Text {
+          x: 56px; y: 0px; width: parent.width - 56px; height: parent.height;
+          vertical-alignment: center; color: Theme.textMuted;
+          text: root.compat_mode ? "Вкл." : "Выкл.";
+        }
+      }
+    }
+
+    // cохранить 
+    PrimaryButton {
+        width: 200px; text: "Сохранить";
+        clicked => { root.save_clicked(); }
+    }
+  }
+}

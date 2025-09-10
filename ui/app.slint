@@ -1,0 +1,125 @@
+import { Theme } from "Theme.slint";
+import { HomeScreen } from "screens/Home.slint";
+import { SettingsScreen } from "screens/Settings.slint";
+
+export component AppWindow inherits Window {
+  title: "Netherfall Launcher";
+  width: 900px; height: 580px;
+
+  in-out property <string> page: "home";
+  in-out property <float>  progress: 0.0;
+
+
+  private property <length> pad: 16px;
+  private property <length> sidebar_w: 200px;
+
+  Rectangle {
+    background: Theme.bg;
+    
+    Rectangle {
+      x: root.pad; y: root.pad;
+      width: root.width - root.sidebar_w - 3*root.pad;
+      height: root.height - 2*root.pad;
+      border-radius: Theme.radius;
+      background: Theme.surface;
+      step := Timer {
+        interval: 50ms; running: false;
+        triggered => {
+          root.progress = min(1.0, root.progress + 0.02);
+          if (root.progress < 1.0) {
+            step.running = true;  
+          }
+        }
+      }
+
+callback start_play();
+start_play => {
+  root.progress = 0.0;
+  step.running = true;       
+}
+
+      VerticalLayout {
+        x: 12px; y: 12px; width: parent.width - 24px; height: parent.height - 24px;
+        spacing: 8px;
+
+        Text { text: "Навигация"; color: Theme.textMuted; }
+
+        // Главная
+        Rectangle {
+          width: parent.width; height: 40px; border-radius: 8px;
+          background: root.page == "home" ? Theme.primary : Theme.surfaceAlt;
+          animate background { duration: 160ms; easing: ease-in-out; }
+
+          Text { x: 12px; y: 0px; width: parent.width; height: parent.height;
+                 color: Theme.text; text: "Главная"; vertical-alignment: center; }
+          TouchArea { x:0px; y:0px; width: parent.width; height: parent.height;
+            clicked => { root.page = "home"; }
+          }
+        }
+
+        // Настройки
+        Rectangle {
+          width: parent.width; height: 40px; border-radius: 8px;
+          background: root.page == "settings" ? Theme.primary : Theme.surfaceAlt;
+          animate background { duration: 160ms; easing: ease-in-out; }
+
+          Text { x: 12px; y: 0px; width: parent.width; height: parent.height;
+                 color: Theme.text; text: "Настройки"; vertical-alignment: center; }
+          TouchArea { x:0px; y:0px; width: parent.width; height: parent.height;
+            clicked => { root.page = "settings"; }
+          }
+        }
+      }
+    }
+
+    Rectangle {
+      x: root.pad + root.sidebar_w + root.pad;
+      y: root.pad;
+      width: root.width - root.sidebar_w - 3*root.pad;
+      height: root.height - 2*root.pad;
+      border-radius: Theme.radius;
+      background: Theme.surface;
+    
+
+      // Главная
+      HomeScreen {
+        x: 16px; y: 16px; width: parent.width - 32px; height: parent.height - 32px;
+        visible: root.page == "home";
+        opacity: root.page == "home" ? 1.0 : 0.0;
+        animate opacity { duration: 220ms; easing: ease-in-out; }
+      }
+
+      // Настройки
+      SettingsScreen {
+        x: 16px; y: 16px; width: parent.width - 32px; height: parent.height - 32px;
+        visible: root.page == "settings";
+        opacity: root.page == "settings" ? 1.0 : 0.0;
+
+        ram_mb: 4096;
+        compat_mode: false;
+        java_path: "/usr/local/bin/java";
+        game_dir: "~/.netherfall";
+
+        // open_game_dir => { /* call into Rust */ }
+        // browse_game_dir => { /* show folder picker */ }
+
+        animate opacity { duration: 220ms; easing: ease-in-out; }
+      }
+     
+}
+
+       
+
+      kick := Timer {
+        interval: 1ms; running: false;
+        triggered => { root.progress = 1.0; }
+      }
+
+      callback start_play();
+      start_play => {
+        root.progress = 0.0;
+        kick.running = true; 
+      }
+    }
+  }
+
