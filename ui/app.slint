@@ -1,4 +1,5 @@
 import { Theme } from "Theme.slint";
+import { LogsScreen } from "screens/Logs.slint";
 import { HomeScreen } from "screens/Home.slint";
 import { SettingsScreen } from "screens/Settings.slint";
 
@@ -8,10 +9,25 @@ export component AppWindow inherits Window {
 
   in-out property <string> page: "home";
   in-out property <float>  progress: 0.0;
+  in-out property <[string]> logs: [];
 
 
   private property <length> pad: 16px;
   private property <length> sidebar_w: 200px;
+  in-out property <string> settings_username: "Player";
+  in-out property <int>    settings_ram_mb: 4096;
+  in-out property <bool>   settings_compat_mode: false;
+  in-out property <string> settings_java_path: "/usr/local/bin/java";
+  in-out property <string> settings_game_dir: "~/.netherfall";
+
+  callback open_game_dir();
+  callback browse_game_dir();
+  callback browse_java_path();
+  callback save_settings();
+
+  callback play();
+  callback repair();
+
 
   Rectangle {
     background: Theme.bg;
@@ -69,6 +85,22 @@ start_play => {
             clicked => { root.page = "settings"; }
           }
         }
+        Rectangle {
+          width: parent.width; height: 44px;
+          background: root.page == "logs" ? Theme.primary : Theme.surfaceAlt;
+          border-radius: Theme.radius;
+
+          Text {
+            x: 12px; y: 0px; height: parent.height;
+            vertical-alignment: center; color: Theme.text;
+            text: "Логи";
+          }
+
+          TouchArea {
+            x: 0px; y: 0px; width: parent.width; height: parent.height;
+            clicked => { root.page = "logs"; }
+          }
+       } 
       }
     }
 
@@ -87,6 +119,17 @@ start_play => {
         visible: root.page == "home";
         opacity: root.page == "home" ? 1.0 : 0.0;
         animate opacity { duration: 220ms; easing: ease-in-out; }
+         play_clicked => { root.play(); }
+         fix_clicked  => { root.repair(); }
+      }
+
+      // Логи
+      LogsScreen {
+        x: 16px; y: 16px; width: parent.width - 32px; height: parent.height - 32px;
+        visible: root.page == "logs";
+        opacity: root.page == "logs" ? 1.0 : 0.0;
+        items <=> root.logs;   
+        animate opacity { duration: 220ms; easing: ease-in-out; }
       }
 
       // Настройки
@@ -94,18 +137,23 @@ start_play => {
         x: 16px; y: 16px; width: parent.width - 32px; height: parent.height - 32px;
         visible: root.page == "settings";
         opacity: root.page == "settings" ? 1.0 : 0.0;
+  
 
-        ram_mb: 4096;
-        compat_mode: false;
-        java_path: "/usr/local/bin/java";
-        game_dir: "~/.netherfall";
+        username   <=> root.settings_username;
+        ram_mb     <=> root.settings_ram_mb;
+        compat_mode <=> root.settings_compat_mode;
+        java_path  <=> root.settings_java_path;
+        game_dir   <=> root.settings_game_dir;
 
-        // open_game_dir => { /* call into Rust */ }
-        // browse_game_dir => { /* show folder picker */ }
+        open_game_dir   => { root.open_game_dir(); }
+        browse_game_dir => { root.browse_game_dir(); }
+        browse_java_path => { root.browse_java_path(); }
+        save_clicked    => { root.save_settings(); }
+        
+        
 
         animate opacity { duration: 220ms; easing: ease-in-out; }
       }
-     
 }
 
        

@@ -6,7 +6,7 @@ component SmallButton inherits PrimaryButton {
   height: 36px;
 }
 
-// Переключатель
+// Тумблер
 component Toggle inherits Rectangle {
   in-out property <bool> checked: false;
   width: 44px; height: 24px; border-radius: self.height / 2;
@@ -23,7 +23,7 @@ component Toggle inherits Rectangle {
   }
 }
 
-// Строка настроек
+// Строка настроек — ширину получаем через prop `w`
 component Row inherits Rectangle {
   in property <string> label: "Label";
   in property <length> row_height: 40px;
@@ -38,16 +38,17 @@ component Row inherits Rectangle {
 }
 
 export component SettingsScreen inherits Rectangle {
+  // значения
+  in-out property <string> username: "Player";
   in-out property <int>    ram_mb: 4096;
   in-out property <bool>   compat_mode: false;
   in-out property <string> java_path: "/usr/local/bin/java";
-
-  // папка игры
   in-out property <string> game_dir: "~/.netherfall";
 
-  // Колбэки для кнопок 
+  // колбэки для кнопок
   callback open_game_dir();
   callback browse_game_dir();
+  callback browse_java_path();
   callback save_clicked();
 
   background: Theme.surface;
@@ -57,7 +58,30 @@ export component SettingsScreen inherits Rectangle {
 
     Text { text: "Настройки"; color: Theme.text; font-size: 18px; }
 
-    // ram
+    // Никнейм
+    Row {
+      w: parent.width;
+      label: "Никнейм";
+
+      Rectangle {
+        x: 190px; y: 0px; width: parent.width - 190px; height: parent.height;
+
+        Rectangle {
+          x: 0px; y: 6px; width: parent.width; height: parent.height - 12px;
+          border-radius: 8px; background: Theme.surfaceAlt;
+
+          // Текстовое поле
+          TextInput {
+            x: 10px; y: 0px; width: parent.width - 20px; height: parent.height;
+            text <=> root.username;
+            vertical-alignment: center;
+            color: Theme.text;
+          }
+        }
+      }
+    }
+
+    // RAM
     Row {
       w: parent.width;
       label: "Память (MB)";
@@ -86,7 +110,7 @@ export component SettingsScreen inherits Rectangle {
       }
     }
 
-    // Java path
+    // Путь к Java
     Row {
       w: parent.width;
       label: "Путь к Java";
@@ -108,7 +132,7 @@ export component SettingsScreen inherits Rectangle {
         SmallButton {
           x: parent.width - 110px; y: 2px; width: 110px;
           text: "Обзор…";
-          clicked => { /* диалог выбора Java позже */ }
+          clicked => { root.browse_java_path(); }   // ← теперь вызывает колбэк
         }
       }
     }
@@ -133,14 +157,13 @@ export component SettingsScreen inherits Rectangle {
           }
         }
 
-        // Кнопка Открыть
+        // Открыть
         SmallButton {
           x: parent.width - 230px; y: 2px; width: 110px;
           text: "Открыть";
           clicked => { root.open_game_dir(); }
         }
-
-        // Кнопка Обзор
+        // Обзор…
         SmallButton {
           x: parent.width - 110px; y: 2px; width: 110px;
           text: "Обзор…";
@@ -149,7 +172,7 @@ export component SettingsScreen inherits Rectangle {
       }
     }
 
-    // Режим совместимости
+    // Совместимость
     Row {
       w: parent.width;
       label: "Совместимость";
@@ -167,10 +190,10 @@ export component SettingsScreen inherits Rectangle {
       }
     }
 
-    // cохранить 
+    // Сохранить
     PrimaryButton {
-        width: 200px; text: "Сохранить";
-        clicked => { root.save_clicked(); }
+      width: 200px; text: "Сохранить";
+      clicked => { root.save_clicked(); }
     }
   }
 }
